@@ -1,0 +1,33 @@
+{
+  "name": "judgement-app",
+  "version": "1.0.0",
+  "description": "Judgment app API",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "jest",
+    "test-watch": "jest --watch",
+    "watch": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "cluster": "pm2 start src/server.js -i max"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "csv-parse": "^5.0.3",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "express-validator": "^6.14.0",
+    "google-auth-library": "^7.10.3",
+    "jsonwebtoken": "^8.5.1",
+    "mongoose": "^6.1.1",
+    "morgan": "^1.10.0",
+    "pm2": "^5.1.2"
+  },
+  "devDependencies": {
+    "jest": "^27.4.5",
+    "nodemon": "^2.0.15",
+    "supertest": "^6.1.6"
+  }
+}
