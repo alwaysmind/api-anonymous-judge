@@ -61,7 +61,7 @@ exports.getAllResponseByQuestion = async (req, res) => {
     let responses = await Response.find({ question_id: questionId }).sort({ created_at: -1 })
 
     if (question.post.access == 'private' && (!!isFollow.length < 1 || question.post.user_id != userId)) throw new Error('This post is private, you must follow the person who post this question')
-    if (question.is_private) throw new Error('This question is private')
+    if (question.is_private && !(userId == response.user_id || userId == question.post.user_id)) throw new Error('This question is private')
 
     responses = responses.filter(response => {
       if (response.is_show) {
@@ -91,7 +91,7 @@ exports.getOneResponse = async (req, res) => {
     const isFollow = await User.find({ $and: [{ _id: userId }, { follows: { $in: [question.post.user_id] } }] })
 
     if (question.post.access == 'private' && (!!isFollow.length < 1 || question.post.user_id != userId)) throw new Error('This post is private, you must follow the person who post this question')
-    if (question.is_private) throw new Error('This question is private')
+    if (question.is_private && !(userId == response.user_id || userId == question.post.user_id)) throw new Error('This question is private')
     if (!response.is_show && !(userId == response.user_id || userId == question.post.user_id)) throw new Error('This response is not show to everyone')
 
     res.status(200).json({
