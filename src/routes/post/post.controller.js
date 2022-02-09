@@ -57,7 +57,10 @@ exports.getAllPostFriends = async (req, res) => {
 
     followId = followId.map(item => item._id)
 
-    const posts = await Post.find({ user_id: { $in: followId } }).sort({ created_at: -1 })
+    const posts = await Post.find({ user_id: { $in: followId } }).populate({
+      path: 'user_id',
+      select: 'name avatar',
+    }).sort({ created_at: -1 })
 
     res.status(200).json({
       message: 'Congratulationn, success get post friends',
