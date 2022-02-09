@@ -34,7 +34,10 @@ exports.loginWithGoogle = async (req, res) => {
 
     res.status(200).json({
       message: 'Yesss, Login with google Success',
-      data: jwtToken,
+      data: {
+        token: jwtToken,
+        user,
+      },
     })
   } catch (error) {
     res.status(422).json({ message: 'Login with google Failed', error: error.message })
