@@ -107,15 +107,14 @@ exports.unfollow = async (req, res) => {
 exports.showById = async (req, res) => {
   try {
     const { userId } = req.params
+    const userLogin = req.user.user_id
 
     const user = await User.findById(userId).populate({
       path: 'follower',
       populate: { path: 'userId' },
-      match: { accepted: true },
     }).populate({
       path: 'following',
       populate: { path: 'userId' },
-      match: { accepted: true },
     });
 
     let data = Object.assign({}, {
@@ -125,7 +124,8 @@ exports.showById = async (req, res) => {
       name: user.name,
       avatar: user.avatar,
       is_anonym: user.is_anonym,
-      connect: [...user.following, ...user.follower]
+      connect: [...user.following.filter(following => following.accepted == true), ...user.follower.filter(follower => follower.accepted == true)],
+      textStatus: userLogin == userId ? 'me' : await statusConnect(userLogin, user.following, user.follower),
     })
 
     res.status(200).json({
@@ -139,10 +139,35 @@ exports.showById = async (req, res) => {
   }
 }
 
+const statusConnect = async (userId, followings, followers) => {
+  let follower = followings.find(following => following.followId == userId)
+  let following = followers.find(follower => follower.userId._id == userId)
+
+  if (follower) {
+    if (follower.accepted) {
+      return 'Connected'
+    } else {
+      return 'Accept'
+    }
+
+  }
+
+  if (following) {
+    if (following.accepted) {
+      return 'Connected'
+    } else {
+      return 'Requested'
+    }
+  }
+
+  return 'Connect'
+}
+
 exports.getUsers = async (req, res) => {
   try {
     let whereCondition = []
     let query = req.query
+    const userLogin = req.user.user_id
 
     if (query.name) {
       whereCondition.push({ name: { $regex: '.*' + query.name + '.*' } })
@@ -155,25 +180,24 @@ exports.getUsers = async (req, res) => {
     const users = await User.find({ $or: whereCondition }).populate({
       path: 'follower',
       populate: { path: 'userId' },
-      match: { accepted: true },
     }).populate({
       path: 'following',
       populate: { path: 'userId' },
-      match: { accepted: true },
     })
       .exec()
 
-    let data = users.map(user => {
-      return Object.assign({}, {
+    var data = await Promise.all(users.map(async (user) => {
+      return {
         id: user.id,
         email: user.email,
         username: user.username,
         name: user.name,
         avatar: user.avatar,
         is_anonym: user.is_anonym,
-        connect: [...user.following, ...user.follower]
-      })
-    })
+        connect: [...user.following.filter(following => following.accepted == true), ...user.follower.filter(follower => follower.accepted == true)],
+        textStatus: userLogin == user.id ? 'me' : await statusConnect(userLogin, user.following, user.follower),
+      }
+    }));
 
     res.status(200).json({
       message: 'yeahh, the user is found',
